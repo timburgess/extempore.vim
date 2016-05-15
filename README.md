@@ -10,8 +10,8 @@ The default vim Leader key is `\`
 
 Commands specified are:
 
-<Leader>o - `open connection to Extempore`
-<Leader>x - `close connection to Extempore`
-<Leader>w - `send enclosing block to Extempore` <-- use this mostly
-<Leader>a - `send entire file to Extempore`
-<Leader>s - `send selection to Extempore`
+- `<Leader>o` - `open connection to Extempore`
+- `<Leader>x` - `close connection to Extempore`
+- `<Leader>w` - `send enclosing block to Extempore` <-- use this mostly
+- `<Leader>a` - `send entire file to Extempore`
+- `<Leader>s` - `send selection to Extempore`

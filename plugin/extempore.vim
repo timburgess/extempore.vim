@@ -17,8 +17,8 @@
 " A very simple plugin to work with extempore.
 " In general, this could be a LOT faster, and much more
 " elegant. But for now, it works :).
-" 
-" INSTALL: 
+"
+" INSTALL:
 "  Option 1. Open vim, run ":source /path/to/extempore.vim". This is not
 "     permanent! (:so % to source current file)
 "  Option 2. Place extempore.vim in your vim plugin directory.
@@ -30,7 +30,7 @@
 "   - clean up code a bit
 
 " Use Scheme syntax highlighting
-autocmd BufNewFile,BufRead *.xtm set filetype=scheme
+" autocmd BufNewFile,BufRead *.xtm set filetype=scheme
 
 " Define all of the Extempore commands
 command! -nargs=* ExtemporeOpenConnection :python connect()
@@ -212,10 +212,13 @@ def get_enclosing_block():
 def get_enclosing_block_line_numbers(line_num, lines):
     """ Given the current line number, and a list of lines representing
         the buffer, return the line indexes of the beginning and end of
-        the current block. 
-        
+        the current block.
+
         Steps:
-            1. Go through previous lines, find one which matches '^(', ie 
+            1. Go through previous lines, find one which matches '^(', ie
+            :xa
+
+
                 start of line is a paren. Call this line top_placeholder.
             2. From top_placeholder, go towards bottom of file until left and
                 right parent counts are equal. Call this line

@@ -5,11 +5,11 @@ endif
 
 " define our syntax structures
 syntax match extemporeFuncDecName "\w[^: ]*" contained
-syntax match extemporeFuncDec /bind-func .\+$/ contains=extemporeKeyword,extemporeFuncDecName,extemporeClosureType
+syntax match extemporeFuncDec /^(bind-func \S\+ / contains=extemporeKeyword,extemporeFuncDecName,extemporeClosureType
 
 syntax keyword extemporeKeyword define lambda macro dotimes begin cond
 syntax keyword extemporeKeyword let let* if
-syntax match extemporeKeyword "\(bind-\(func\|type\|alias\)\|define-macro\|\)"
+syntax match extemporeKeyword "\(bind-\(func\|val\|type\|alias\|poly\|macro\)\|define-macro\|\)"
 syntax match extemporeFuncName "\(pref\-ptr\|[tpav]ref\)"
 syntax match extemporeFuncName "\([tpav]set!\|set!\)"
 syntax match extemporeFuncName "\(i\(32\|64\)to\(d\|f\)\)"
@@ -88,8 +88,8 @@ syntax match extemporeArrayType /|[^ ]\+|\*\+/ contained contains=extemporeNumbe
 syntax match extemporeClosureType /\[[^ ]\+\]\*\+/ contained contains=extemporeType,extemporeAtomicType
 syntax match extemporeAtomicType /\w[^ <>\[\]{}|\/,]*\*\?/ contained
 
-syntax region extemporeTypeDecl start=/(bind-type/ end=/)/ contains=extemporeKeyword,extemporeTupleType
-syntax region extemporeTypeAlias start=/(bind-alias/ end=/)/ contains=extemporeKeyword,extemporeTupleType
+syntax region extemporeTypeDecl start=/(bind-type/ end=/)/ contains=extemporeKeyword,extemporeTupleType,extemporeString
+syntax region extemporeTypeAlias start=/(bind-alias/ end=/)/ contains=extemporeKeyword,extemporeTupleType,extemporeString
 
 " link those structures to highlight structures
 highlight link extemporeKeyword Keyword

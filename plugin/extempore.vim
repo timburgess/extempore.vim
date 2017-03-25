@@ -33,15 +33,15 @@
 " autocmd BufNewFile,BufRead *.xtm set filetype=scheme
 
 " Define all of the Extempore commands
-command! -nargs=* ExtemporeOpenConnection :python connect()
-command! -nargs=* ExtemporeOutputPoller :python output_poller()
-command! -nargs=* ExtemporeCloseConnection :python close()
-command! -nargs=* ExtemporePanic :python panic()
-command! -nargs=* ExtemporeSendEnclosingBlock :python send_enclosing_block()
-command! -nargs=* ExtemporeSendEntireFile :python send_entire_file()
-command! -nargs=* ExtemporeSendSelection :python send_selection()
-command! -nargs=* ExtemporeSendBracketSelection :python send_bracket_selection()
-command! -nargs=* ExtemporeSendUserInput :python send_user_input()
+command! -nargs=* ExtemporeOpenConnection :python3 connect()
+command! -nargs=* ExtemporeOutputPoller :python3 output_poller()
+command! -nargs=* ExtemporeCloseConnection :python3 close()
+command! -nargs=* ExtemporePanic :python3 panic()
+command! -nargs=* ExtemporeSendEnclosingBlock :python3 send_enclosing_block()
+command! -nargs=* ExtemporeSendEntireFile :python3 send_entire_file()
+command! -nargs=* ExtemporeSendSelection :python3 send_selection()
+command! -nargs=* ExtemporeSendBracketSelection :python3 send_bracket_selection()
+command! -nargs=* ExtemporeSendUserInput :python3 send_user_input()
 
 "" Add this (minus leading ") to netrwFileHandlers.vim
 "" ---------------------------------------------------------------------
@@ -79,7 +79,7 @@ nmap <S-Tab> :ExtemporeSendEnclosingBlock()<CR>
 xmap <S-Tab> <C-c>:ExtemporeSendEnclosingBlock()<CR>
 imap <S-Tab> <Esc>:ExtemporeSendEnclosingBlock()<CR>
 
-python << EOF
+python3 << EOF
 import vim
 import telnetlib
 import threading
@@ -91,16 +91,16 @@ telnet = None
 
 def read_output():
   global telnet
-  to_return = ""
+  to_return = b""
   if not telnet:
-    print "Not connected"
+    print("Not connected")
     return to_return
   try:
     to_return = telnet.read_eager()
   except:
-    print "Error reading from extempore connection"
+    print("Error reading from extempore connection")
     telnet = None
-  return to_return
+  return to_return.decode()
 
 def output_poller():
   global telnet
@@ -108,7 +108,7 @@ def output_poller():
     return
   output = read_output()
   if output != "":
-    print output
+    print(output)
   threading.Timer(0.3, output_poller).start()
 
 def connect():
@@ -127,10 +127,10 @@ def send_string(value):
     """ Sends the desired string through the connection """
     global telnet
     if not telnet:
-        print "Not connected"
+        print("Not connected")
         return
     if value:
-        telnet.write(value)
+        telnet.write(bytes(value, 'utf-8'))
 
 def get_user_input():
     vim.command('call inputsave()')
@@ -140,7 +140,7 @@ def get_user_input():
     return user_input
 
 def echo_user_input():
-    print get_user_input()
+    print(get_user_input())
 
 def send_user_input():
     send_string(get_user_input()+"\r\n")

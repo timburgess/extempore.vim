@@ -3,19 +3,23 @@ if exists("b:current_syntax")
   finish
 endif
 
+syn case ignore
+
 " define our syntax structures
 syntax match extemporeFuncDecName "\w[^: ]*" contained
 syntax match extemporeFuncDec /^(bind-func \S\+ / contains=extemporeKeyword,extemporeFuncDecName,extemporeClosureType
 
-syntax keyword extemporeKeyword define lambda macro dotimes begin cond
-syntax keyword extemporeKeyword let let* if
-syntax match extemporeKeyword "\(bind-\(func\|val\|type\|alias\|poly\|macro\)\|define-macro\|\)"
+setlocal iskeyword=33,35-39,42-58,60-90,94,95,97-122,126,_
 syntax match extemporeFuncName "\(pref\-ptr\|[tpav]ref\)"
 syntax match extemporeFuncName "\([tpav]set!\|set!\)"
 syntax match extemporeFuncName "\(i\(32\|64\)to\(d\|f\)\)"
 syntax match extemporeFuncName "\(\(f\|d\)toi\(32\|64\)\)"
 syntax match extemporeFuncName "\(sys\|impc\|cl\)\(:[a-zA-Z0-9-_]\+\)\+"
 syntax match extemporeFuncName "\(z\|h\|\)alloc"
+
+syntax match extemporeKeyword "\(bind-\(func\|val\|type\|alias\|poly\|macro\)\|define-macro\|\)"
+syntax keyword extemporeKeyword define lambda macro dotimes begin cond
+syntax keyword extemporeKeyword let let* if
 syn keyword extemporeKeyword lambda and or if cond case define let let* letrec
 syn keyword extemporeKeyword begin do delay set! else =>
 syn keyword extemporeKeyword quote quasiquote unquote unquote-splicing

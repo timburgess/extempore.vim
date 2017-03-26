@@ -82,10 +82,10 @@ syntax region extemporeString start=/"/ skip=/\\./ end=/"/
 
 syntax match extemporeType /:[a-zA-Z0-9_\*,\-\/<>|{}\[\]]\+/ contains=extemporeAtomicType,extemporeVecType,extemporeArrayType,extemporeTupleType,extemporeClosureType,extemporeAtomicType,extemporeNumber
 syntax region extemporeQualifiedType start=/\w\+{/ end=/}/ contained contains=extemporeAtomicType
-syntax match extemporeTupleType /<[^ ]\+>\*\+/ contained contains=extemporeType,extemporeAtomicType
-syntax match extemporeVecType /\/[^ ]\+\/\*\+/ contained contains=extemporeNumber,extemporeType,extemporeAtomicType
-syntax match extemporeArrayType /|[^ ]\+|\*\+/ contained contains=extemporeNumber,extemporeAtomicType,extemporeType
-syntax match extemporeClosureType /\[[^ ]\+\]\*\+/ contained contains=extemporeType,extemporeAtomicType
+syntax match extemporeTupleType /<[^ ]\+>\**/ contained contains=extemporeType,extemporeAtomicType
+syntax match extemporeVecType /\/[^ ]\+\/\**/ contained contains=extemporeNumber,extemporeType,extemporeAtomicType
+syntax match extemporeArrayType /|[^ ]\+|\**/ contained contains=extemporeNumber,extemporeAtomicType,extemporeType
+syntax match extemporeClosureType /\[[^ ]\+\]\**/ contained contains=extemporeType,extemporeAtomicType
 syntax match extemporeAtomicType /\w[^ <>\[\]{}|\/,]*\*\?/ contained
 
 syntax region extemporeTypeDecl start=/(bind-type/ end=/)/ contains=extemporeKeyword,extemporeTupleType,extemporeString

@@ -29,20 +29,6 @@
 "   - add an indicator that a command was sent, maybe an underline or flash
 "   - clean up code a bit
 
-" Use Scheme syntax highlighting
-" autocmd BufNewFile,BufRead *.xtm set filetype=scheme
-
-" Define all of the Extempore commands
-command! -nargs=* ExtemporeOpenConnection :python3 connect()
-command! -nargs=* ExtemporeOutputPoller :python3 output_poller()
-command! -nargs=* ExtemporeCloseConnection :python3 close()
-command! -nargs=* ExtemporePanic :python3 panic()
-command! -nargs=* ExtemporeSendEnclosingBlock :python3 send_enclosing_block()
-command! -nargs=* ExtemporeSendEntireFile :python3 send_entire_file()
-command! -nargs=* ExtemporeSendSelection :python3 send_selection()
-command! -nargs=* ExtemporeSendBracketSelection :python3 send_bracket_selection()
-command! -nargs=* ExtemporeSendUserInput :python3 send_user_input()
-
 "" Add this (minus leading ") to netrwFileHandlers.vim
 "" ---------------------------------------------------------------------
 "" s:NFH_html: handles extempore when the user hits "x" when the {{{1
@@ -57,208 +43,73 @@ command! -nargs=* ExtemporeSendUserInput :python3 send_user_input()
 
 " These are the mappings I found to be convenient, which
 " didn't interfere with my own personal setup. Feel free to change them.
-nnoremap <Leader>o :ExtemporeOpenConnection() <CR>
-nnoremap <Leader>O :ExtemporeCloseConnection() <CR>
-nnoremap <Leader>x :ExtemporeCloseConnection() <CR>
-nnoremap <Leader>w :ExtemporeSendEnclosingBlock() <CR>
-nnoremap <Leader>a :ExtemporeSendEntireFile() <CR>
-nnoremap <Leader>s :ExtemporeSendSelection() <CR>
+augroup extemporeMaps
+  autocmd!
+  autocmd FileType extempore nnoremap <buffer> <Leader>o :ExtemporeOpenConnection() <CR>
+  autocmd FileType extempore nnoremap <buffer> <Leader>O :ExtemporeCloseConnection() <CR>
+  autocmd FileType extempore nnoremap <buffer> <Leader>x :ExtemporeCloseConnection() <CR>
+  autocmd FileType extempore nnoremap <buffer> <Leader>w :ExtemporeSendEnclosingBlock() <CR>
+  autocmd FileType extempore nnoremap <buffer> <Leader>a :ExtemporeSendEntireFile() <CR>
+  autocmd FileType extempore nnoremap <buffer> <Leader>s :ExtemporeSendSelection() <CR>
 
-nmap <F12> :ExtemporeSendUserInput()<CR>
+  autocmd FileType extempore nnoremap <buffer> <F12> :ExtemporeSendUserInput()<CR>
 
-nmap <Bar> :ExtemporeSendEntireFile()<CR>
-nmap <BS> :ExtemporePanic()<CR>
+  autocmd FileType extempore nnoremap <buffer> <Bar> :ExtemporeSendEntireFile()<CR>
+  autocmd FileType extempore nnoremap <buffer> <BS> :ExtemporePanic()<CR>
 
-nmap ] :ExtemporeSendBracketSelection()<CR>
+  autocmd FileType extempore nnoremap <buffer> ] :ExtemporeSendBracketSelection()<CR>
 
-nmap <Return> :ExtemporeSendSelection()<CR>
-xmap <Return> <C-c> :ExtemporeSendSelection()<CR>
+  autocmd FileType extempore nnoremap <buffer> <Return> :ExtemporeSendSelection()<CR>
+  autocmd FileType extempore xnoremap <buffer> <Return> <C-c> :ExtemporeSendSelection()<CR>
 
-nmap <Tab> :ExtemporeSendEnclosingBlock()<CR>
-nmap <S-Tab> :ExtemporeSendEnclosingBlock()<CR>
-xmap <S-Tab> <C-c>:ExtemporeSendEnclosingBlock()<CR>
-imap <S-Tab> <Esc>:ExtemporeSendEnclosingBlock()<CR>
+  autocmd FileType extempore nnoremap <buffer> <Tab> :ExtemporeSendEnclosingBlock()<CR>
+  autocmd FileType extempore nnoremap <buffer> <S-Tab> :ExtemporeSendEnclosingBlock()<CR>
+  autocmd FileType extempore xnoremap <buffer> <S-Tab> <C-c>:ExtemporeSendEnclosingBlock()<CR>
+  autocmd FileType extempore inoremap <buffer> <S-Tab> <Esc>:ExtemporeSendEnclosingBlock()<CR>
+  autocmd BufUnload *.xtm :ExtemporeCloseConnection()<CR>
+augroup END
 
-python3 << EOF
-import vim
-import telnetlib
-import threading
+function! s:load_python_scripts(python_dir)
+  if has('python3')
+    exe 'python3 sys.path.insert(0, "' . escape(a:python_dir, '\"') . '")'
+    python3 from extempore3 import *
+    call s:define_extempore_commands('3')
+  elseif has('python')
+    exe 'python sys.path.insert(0, "' . escape(a:python_dir, '\"') . '")'
+    python from extempore2 import *
+    call s:define_extempore_commands('')
+  endif
+endfunction
 
-HOST = "localhost"
-PORT = 7099
+function! s:reload_python_scripts()
+  if has('python3')
+    python3 reload(extempore3)
+    call s:define_extempore_commands('3')
+  elseif has('python')
+    python reload(extempore2)
+    call s:define_extempore_commands('')
+  endif
+endfunction
 
-telnet = None
+function! s:define_extempore_commands(py_version)
+  exe 'command! -nargs=* ExtemporeOpenConnection :python' . a:py_version . ' connect()'
+  exe 'command! -nargs=* ExtemporeOutputPoller :python' . a:py_version . ' output_poller()'
+  exe 'command! -nargs=* ExtemporeCloseConnection :python' . a:py_version . ' close()'
+  exe 'command! -nargs=* ExtemporePanic :python' . a:py_version . ' panic()'
+  exe 'command! -nargs=* ExtemporeSendEnclosingBlock :python' . a:py_version . ' send_enclosing_block()'
+  exe 'command! -nargs=* ExtemporeSendEntireFile :python' . a:py_version . ' send_entire_file()'
+  exe 'command! -nargs=* ExtemporeSendSelection :python' . a:py_version . ' send_selection()'
+  exe 'command! -nargs=* ExtemporeSendBracketSelection :python' . a:py_version . ' send_bracket_selection()'
+  exe 'command! -nargs=* ExtemporeSendUserInput :python' . a:py_version . ' send_user_input()'
+endfunction
 
-def read_output():
-  global telnet
-  to_return = b""
-  if not telnet:
-    print("Not connected")
-    return to_return
-  try:
-    to_return = telnet.read_eager()
-  except:
-    print("Error reading from extempore connection")
-    telnet = None
-  return to_return.decode()
+" specify the directory of python scripts
+let s:python_dir = fnamemodify(expand("<sfile>"), ':p:h:h') . '/python'
 
-def output_poller():
-  global telnet
-  if not telnet:
-    return
-  output = read_output()
-  if output != "":
-    print(output)
-  threading.Timer(0.3, output_poller).start()
-
-def connect():
-    """ Opens the connection """
-    global telnet
-    telnet = telnetlib.Telnet(HOST, PORT)
-    output_poller()
-
-def close():
-    global telnet
-    if telnet:
-        telnet.close()
-        telnet = None
-
-def send_string(value):
-    """ Sends the desired string through the connection """
-    global telnet
-    if not telnet:
-        print("Not connected")
-        return
-    if value:
-        telnet.write(bytes(value, 'utf-8'))
-
-def get_user_input():
-    vim.command('call inputsave()')
-    vim.command("let user_input = input('extempore>: ')")
-    vim.command('call inputrestore()')
-    user_input = vim.eval('user_input')
-    return user_input
-
-def echo_user_input():
-    print(get_user_input())
-
-def send_user_input():
-    send_string(get_user_input()+"\r\n")
-
-def panic():
-    send_string("(bind-func dsp (lambda (in:SAMPLE time:i64 channel:SAMPLE data:SAMPLE*) 0.0))\r\n")
-
-def send_enclosing_block():
-    """ Grab the enclosing function block and send it, ie if you
-        are inside a (define ...) somewhere, we want to send that."""
-    send_string(get_enclosing_block())
-
-def send_entire_file():
-    send_string(get_entire_file())
-
-def send_selection():
-    """ Send the text determined by the '<' and '>' marks. """
-    send_string(get_selection())
-
-def send_bracket_selection():
-    """ Send the text determined by the '[' and ']' marks. """
-    send_string(get_bracket_selection())
-
-def get_entire_file():
-    lines = vim.current.buffer
-    result = join_lines(lines)
-    return result
-
-def send_path_file(path):
-    file_data = open(path).read()
-    send_string(file_data+"\r\n")
-
-def get_selection():
-    lines = vim.current.buffer
-    start_selection, col = vim.current.buffer.mark("<")
-    # vim index is not 0 based, facepalm.jpg
-    start_selection -= 1
-    end_selection, col = vim.current.buffer.mark(">")
-
-    result = join_lines(lines[start_selection:end_selection])
-
-    return result
-
-def get_bracket_selection():
-    lines = vim.current.buffer
-    start_selection, col = vim.current.buffer.mark("[")
-    # vim index is not 0 based, facepalm.jpg
-    start_selection -= 1
-    end_selection, col = vim.current.buffer.mark("]")
-
-    result = join_lines(lines[start_selection:end_selection])
-
-    return result
-
-def get_enclosing_block():
-    current_line, current_col = vim.current.window.cursor
-    # facepalm.jpg, really vim?
-    current_line -= 1
-    buffer_lines = vim.current.buffer
-    result = get_enclosing_block_line_numbers(current_line, buffer_lines)
-    if result is None:
-        return None
-    start_line, end_line = result
-
-    result = join_lines(vim.current.buffer[start_line:end_line+1])
-    return result
-
-
-def get_enclosing_block_line_numbers(line_num, lines):
-    """ Given the current line number, and a list of lines representing
-        the buffer, return the line indexes of the beginning and end of
-        the current block.
-
-        Steps:
-            1. Go through previous lines, find one which matches '^(', ie
-            :xa
-
-
-                start of line is a paren. Call this line top_placeholder.
-            2. From top_placeholder, go towards bottom of file until left and
-                right parent counts are equal. Call this line
-                bottom_placeholder
-            3. Return the tuple (top, bottom) placeholders as long as the
-                current line resides in them. Else, return None.
-            """
-    top_placeholder = line_num
-    # lines from current to beginning, reversed
-    for line in lines[:line_num+1][::-1]:
-        if line.startswith("("):
-            break
-        top_placeholder -= 1
-
-    left_parens = 0
-    right_parens = 0
-    bottom_placeholder = top_placeholder
-    # lines from top_placeholder to end
-    for line in lines[top_placeholder:]:
-        left_parens += line.count("(")
-        right_parens += line.count(")")
-        if left_parens == right_parens:
-            break
-        bottom_placeholder += 1
-
-    # if entire code block is above the current line, return None
-    if bottom_placeholder < line_num:
-        return None
-    else:
-        return (top_placeholder, bottom_placeholder)
-
-def join_lines(lines):
-    """ Join lines by spaces, remove any comments, and end with newline"""
-    result = ""
-    for line in lines:
-        # remove comment; TODO: do less hacky
-        result += line.split(";")[0]
-
-    result += "\r\n"
-    return result
-
-
-EOF
+" load the python dir
+if !exists('s:python')
+  let s:python = 1
+  call s:load_python_scripts(s:python_dir)
+else
+  call s:reload_python_scripts()
+endif
